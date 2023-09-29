@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	URI      string
-	DATABASE string
+	URI      = "mongodb+srv://j:rootroot@cluster0.rj0tg.mongodb.net/"
+	DATABASE = "video"
 )
 
 type DB struct {

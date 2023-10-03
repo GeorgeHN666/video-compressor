@@ -32,7 +32,7 @@ func StorePost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("About to store videos")
 
 	for i, v := range Post.Videos {
-		fmt.Printf("Video with key %d with data with: %v \n", i, v.URI)
+		fmt.Printf("Video with key %d and name %s with data \n", i, v.Title)
 	}
 
 	res.Error = false

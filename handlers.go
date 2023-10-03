@@ -75,6 +75,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 		Val  string `json:"val"`
 	}
 
+	fmt.Println("hitting point")
+
 	err := ReadJSON(w, r, &Test)
 	if err != nil {
 		res.Error = true
@@ -86,6 +88,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	res.Error = false
 	res.Message = "All good"
 
+	fmt.Println("end of endpoint")
 	WriteJSON(w, r, http.StatusOK, res)
 
 }

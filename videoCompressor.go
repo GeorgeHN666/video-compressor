@@ -23,6 +23,8 @@ func CompressVideos(r *http.Request) ([]*Video, error) {
 	var Videos []*Video
 
 	for _, fileHeader := range files {
+
+		fmt.Println("Inside range")
 		file, err := fileHeader.Open()
 		if err != nil {
 			return nil, err
@@ -44,6 +46,7 @@ func CompressVideos(r *http.Request) ([]*Video, error) {
 		if err := encoder.Close(); err != nil {
 			return nil, err
 		}
+		fmt.Println(TempFile.String())
 
 		Videos = append(Videos, &Video{
 			URI:   TempFile.String(),

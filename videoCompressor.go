@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
 
 func CompressVideos(r *http.Request) ([]*Video, error) {
+
+	fmt.Println("Inside the compress videos functionv")
 
 	// Get the array of multipart files
 	files := r.MultipartForm.File["files"]
@@ -51,6 +54,8 @@ func CompressVideos(r *http.Request) ([]*Video, error) {
 	// At this point, 'videos' contains the encoded videos
 	// You can do whatever you want with the 'videos' slice, such as sending it as JSON response.
 	// For simplicity, we'll just print the results here.
+
+	fmt.Println("About to go outside video compress function")
 
 	return Videos, nil
 }

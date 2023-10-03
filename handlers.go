@@ -30,9 +30,9 @@ func StorePost(w http.ResponseWriter, r *http.Request) {
 
 	Post.Videos = videos
 	fmt.Println("About to store videos")
-	err = StartDB().InsertPost(&Post)
-	if err != nil {
-		return
+
+	for i, v := range Post.Videos {
+		fmt.Printf("Video with key %d with data with: %v \n", i, v.URI)
 	}
 
 	res.Error = false

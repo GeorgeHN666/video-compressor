@@ -11,6 +11,10 @@ import (
 
 func CompressVideos(r *http.Request) ([]*Video, error) {
 
+	fmt.Println("----------------------------------------")
+	fmt.Println("          ")
+	fmt.Println("New Operation")
+
 	// Get the array of multipart files
 	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {

@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"os/exec"
 )
 
 func CompressVideos(r *http.Request) ([]*Video, error) {
@@ -29,55 +26,26 @@ func CompressVideos(r *http.Request) ([]*Video, error) {
 		}
 		defer file.Close()
 
-		// Create a buffer to store the base64-encoded video data
-		var dataBuffer bytes.Buffer
+		var TempFile bytes.Buffer
 
-		// Create an io.Pipe to redirect FFmpeg output to both dataBuffer and base64 encoder
-		pipeReader, pipeWriter := io.Pipe()
+		encoder := base64.NewEncoder(base64.StdEncoding, &TempFile)
 
-		// Compress the video using FFmpeg
-		cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-c:v", "libx264", "-crf", "23", "./output.mp4")
-		cmd.Stdin = file
-		cmd.Stdout = pipeWriter
-		cmd.Stderr = os.Stderr
-
-		if err := cmd.Start(); err != nil {
-			return nil, err
-		}
-		fmt.Println("After exec")
-		// Encode the FFmpeg output to base64
-		defer pipeWriter.Close()
-		encoder := base64.NewEncoder(base64.StdEncoding, &dataBuffer)
-		fmt.Println("Got heree")
-		_, err = io.Copy(encoder, pipeReader)
+		// Encode the compressed video to base64
+		// Copy the file content to the encoder
+		_, err = io.Copy(encoder, file)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("Got after")
 
+		// Close the encoder to flush any remaining data
 		if err := encoder.Close(); err != nil {
 			return nil, err
 		}
 
-		// Read the compressed video data from FFmpeg and store it in dataBuffer
-		_, err = io.Copy(&dataBuffer, pipeReader)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println("Got to copy")
-
-		// Wait for FFmpeg to finish
-		if err := cmd.Wait(); err != nil {
-			return nil, err
-		}
-
-		// // Encode the compressed video to base64
-		// encodedData := base64.StdEncoding.EncodeToString(dataBuffer.Bytes())
-		// // Append the encoded video to the videos slice
-		// Videos = append(Videos, &Video{
-		// 	URI:   encodedData,
-		// 	Title: fileHeader.Filename,
-		// })
+		Videos = append(Videos, &Video{
+			URI:   TempFile.String(),
+			Title: fileHeader.Filename,
+		})
 	}
 
 	// At this point, 'videos' contains the encoded videos

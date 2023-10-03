@@ -9,6 +9,7 @@ import (
 func StartServer(addr int) error {
 	srv := http.Server{
 		Addr:              fmt.Sprintf(":%d", addr),
+		Handler:           HandleRoutes(),
 		IdleTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		ReadTimeout:       30 * time.Second,

@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func StorePost(w http.ResponseWriter, r *http.Request) {
 
@@ -26,7 +29,7 @@ func StorePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Post.Videos = videos
-
+	fmt.Println("About to store videos")
 	err = StartDB().InsertPost(&Post)
 	if err != nil {
 		return
@@ -55,6 +58,33 @@ func Feed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.Posts = posts
+
+	WriteJSON(w, r, http.StatusOK, res)
+
+}
+
+func Test(w http.ResponseWriter, r *http.Request) {
+
+	var res struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	var Test struct {
+		Name string `json:"name"`
+		Val  string `json:"val"`
+	}
+
+	err := ReadJSON(w, r, &Test)
+	if err != nil {
+		res.Error = true
+		res.Message = err.Error()
+		WriteJSON(w, r, http.StatusBadRequest, res)
+		return
+	}
+
+	res.Error = false
+	res.Message = "All good"
 
 	WriteJSON(w, r, http.StatusOK, res)
 

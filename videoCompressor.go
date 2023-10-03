@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -28,35 +29,55 @@ func CompressVideos(r *http.Request) ([]*Video, error) {
 		}
 		defer file.Close()
 
-		// Create a pipe to stream the video data from FFmpeg to base64 encoding
+		// Create a buffer to store the base64-encoded video data
+		var dataBuffer bytes.Buffer
+
+		// Create an io.Pipe to redirect FFmpeg output to both dataBuffer and base64 encoder
 		pipeReader, pipeWriter := io.Pipe()
 
-		// Use FFmpeg to compress and encode the video directly "scale=640:480"
-		cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-c:v", "libx264", "-crf", "23", "-f", "base64", "-")
+		// Compress the video using FFmpeg
+		cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-c:v", "libx264", "-crf", "23", "./output.mp4")
 		cmd.Stdin = file
 		cmd.Stdout = pipeWriter
 		cmd.Stderr = os.Stderr
 
-		go func() {
-			defer pipeWriter.Close()
-			err := cmd.Run()
-			if err != nil {
-				fmt.Printf("Error running FFmpeg: %v\n", err)
-			}
-		}()
+		if err := cmd.Start(); err != nil {
+			return nil, err
+		}
+		fmt.Println("After exec")
+		// Encode the FFmpeg output to base64
+		defer pipeWriter.Close()
+		encoder := base64.NewEncoder(base64.StdEncoding, &dataBuffer)
+		fmt.Println("Got heree")
+		_, err = io.Copy(encoder, pipeReader)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println("Got after")
 
-		// Read the base64-encoded video data from the pipe
-		var dataBuffer bytes.Buffer
+		if err := encoder.Close(); err != nil {
+			return nil, err
+		}
+
+		// Read the compressed video data from FFmpeg and store it in dataBuffer
 		_, err = io.Copy(&dataBuffer, pipeReader)
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("Got to copy")
 
-		// Append the encoded video to the videos slice
-		Videos = append(Videos, &Video{
-			URI:   dataBuffer.String(),
-			Title: fileHeader.Filename,
-		})
+		// Wait for FFmpeg to finish
+		if err := cmd.Wait(); err != nil {
+			return nil, err
+		}
+
+		// // Encode the compressed video to base64
+		// encodedData := base64.StdEncoding.EncodeToString(dataBuffer.Bytes())
+		// // Append the encoded video to the videos slice
+		// Videos = append(Videos, &Video{
+		// 	URI:   encodedData,
+		// 	Title: fileHeader.Filename,
+		// })
 	}
 
 	// At this point, 'videos' contains the encoded videos

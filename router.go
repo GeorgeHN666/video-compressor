@@ -11,6 +11,7 @@ func HandleRoutes() http.Handler {
 
 	mux.Post("/insert", StorePost)
 	mux.Get("/getAll", Feed)
+	mux.Post("/test", Test)
 
 	return mux
 }
